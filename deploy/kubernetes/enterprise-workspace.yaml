@@ -1,0 +1,116 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: enterprise-workspace-config
+data:
+  enterprise-config.json: |
+    {
+      "brandName": "HiWork",
+      "passwordLoginEnabled": false,
+      "authProviders": [{
+        "id": "workforce-oidc",
+        "protocol": "oidc",
+        "label": "Company SSO",
+        "loginUrl": "/api/auth/oidc/start"
+      }]
+    }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: enterprise-workspace-data
+spec:
+  accessModes: ['ReadWriteOnce']
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: enterprise-workspace
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: enterprise-workspace
+  template:
+    metadata:
+      labels:
+        app: enterprise-workspace
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+      containers:
+        - name: workspace
+          image: example/enterprise-workspace:latest
+          ports:
+            - name: http
+              containerPort: 3000
+          env:
+            - name: AIONUI_DATA_DIR
+              value: /data
+            - name: AIONUI_OPEN_BROWSER
+              value: 'false'
+          readinessProbe:
+            httpGet: { path: /, port: http }
+            initialDelaySeconds: 20
+          livenessProbe:
+            httpGet: { path: /, port: http }
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          resources:
+            requests: { cpu: 250m, memory: 512Mi }
+            limits: { cpu: '2', memory: 2Gi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ['ALL']
+          volumeMounts:
+            - { name: data, mountPath: /data }
+            - name: runtime-config
+              mountPath: /app/static/enterprise-config.json
+              subPath: enterprise-config.json
+              readOnly: true
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: enterprise-workspace-data
+        - name: runtime-config
+          configMap:
+            name: enterprise-workspace-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: enterprise-workspace
+spec:
+  selector:
+    app: enterprise-workspace
+  ports:
+    - { name: http, port: 80, targetPort: http }
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: enterprise-workspace
+spec:
+  tls:
+    - hosts: ['ai-workspace.example.com']
+      secretName: enterprise-workspace-tls
+  rules:
+    - host: ai-workspace.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: enterprise-workspace
+                port:
+                  name: http

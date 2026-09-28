@@ -1,0 +1,108 @@
+/* GPU-friendly: transform applies to the + SVG only (see Sider.tsx), not the padded row or icon frame */
+
+.newChatTrigger {
+  position: relative;
+}
+
+.newChatIcon {
+  transform: translateZ(0);
+  transition: transform 0.14s cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+.newChatTrigger:hover .newChatIcon {
+  transform: scale(0.92) translateZ(0);
+}
+
+.newChatTrigger:active .newChatIcon {
+  transform: scale(0.84) translateZ(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .newChatIcon {
+    transition: none;
+  }
+
+  .newChatTrigger:hover .newChatIcon,
+  .newChatTrigger:active .newChatIcon {
+    transform: translateZ(0);
+  }
+}
+
+/* Overlay-style scroll area: scrollbar takes zero layout width so icons in the
+   fixed top nav and the scrollable list stay on the same vertical center line.
+   Mimics macOS native overlay scrollbars. */
+.scrollArea {
+  scrollbar-width: none; /* Firefox */
+}
+
+.scrollArea::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  margin: 0 4px 8px;
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--color-border-2);
+}
+
+.identityCollapsed {
+  justify-content: center;
+  margin-inline: 0;
+  padding-inline: 0;
+}
+
+.identityAvatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  border-radius: 6px;
+  color: var(--color-text-1);
+  background: var(--color-fill-3);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.identityText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+}
+
+.identityText strong,
+.identityText span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.identityText strong {
+  color: var(--color-text-1);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.identityText span {
+  color: var(--color-text-3);
+  font-size: 11px;
+}
+
+/* Pinned sidebar row — reserve a dedicated 28px slot on the right for the
+   pushpin indicator so it never overlaps the row title. When the row is
+   hovered, the three-dot menu takes over that slot and the text reclaims
+   the gap (18px), matching non-pinned rows. */
+.pinnedTextSlot {
+  padding-inline-end: 28px;
+}
+
+:global(.group):hover .pinnedTextSlot {
+  padding-inline-end: 18px;
+}
