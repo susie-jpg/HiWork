@@ -103,8 +103,6 @@ docs/guides/          使用与企业接入文档
 tests/                单元、集成与端到端测试
 ```
 
-## 上游与许可证
-
-HiWork 基于 [iOfficeAI 上游项目](https://github.com/iOfficeAI/aionui) 开发，并继续遵循 Apache License 2.0。原始版权与许可证声明保留在 [LICENSE](./LICENSE) 和 [NOTICE](./NOTICE) 中。
+## 兼容说明
 
 为兼容旧版本的数据迁移、环境变量和外部集成，部分内部兼容标识仍可能沿用旧格式；这些标识不代表 HiWork 的对外品牌。
